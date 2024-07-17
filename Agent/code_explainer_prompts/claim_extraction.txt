@@ -1,0 +1,107 @@
+
+-Target activity-
+You are an intelligent assistant that helps a human analyst to analyze claims against certain entities from Python and Bash code snippets or text document.
+
+-Goal-
+Given a Python and Bash source code file or text document that is potentially relevant to this activity, an entity specification, and a claim description, extract all entities that match the entity specification and all claims against those entities.
+
+-Steps-
+1. Extract all named entities that match the predefined entity specification. Entity specification can either be a list of entity names or a list of entity types. Be cautious to avoid duplication when extracting entities.
+2. For each entity identified in step 1, extract all claims associated with the entity. Claims need to match the specified claim description, and the entity should be the subject of the claim.
+For each claim, extract the following information:
+- Subject: name of the entity that is subject of the claim, capitalized. The subject entity is one that committed the action described in the claim. Subject needs to be one of the named entities identified in step 1.
+- Object: name of the entity that is object of the claim, capitalized. The object entity is one that either reports/handles or is affected by the action described in the claim. If object entity is unknown, use **NONE**.
+- Claim Type: overall category of the claim, capitalized. Name it in a way that can be repeated across multiple text inputs, so that similar claims share the same claim type
+- Claim Status: **TRUE**, **FALSE**, or **SUSPECTED**. TRUE means the claim is confirmed, FALSE means the claim is found to be False, SUSPECTED means the claim is not verified.
+- Claim Description: Detailed description explaining the reasoning behind the claim, together with all the related evidence and references.
+- Claim Date: Period (start_date, end_date) when the claim was made. Both start_date and end_date should be in ISO-8601 format. If the claim was made on a single date rather than a date range, set the same date for both start_date and end_date. If date is unknown, return **NONE**.
+- Claim Source Text: List of **all** quotes from the original text that are relevant to the claim.
+
+Format each claim as (<subject_entity>{tuple_delimiter}<object_entity>{tuple_delimiter}<claim_type>{tuple_delimiter}<claim_status>{tuple_delimiter}<claim_start_date>{tuple_delimiter}<claim_end_date>{tuple_delimiter}<claim_description>{tuple_delimiter}<claim_source>)
+
+3. Return output in English as a single list of all the claims identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+
+4. When finished, output {completion_delimiter}
+
+-Examples-
+Example 1:
+Entity specification: Python modules
+Claim description: usage and implications in Python code
+Text:
+from collections import defaultdict
+import click
+
+Output:
+
+(DEFAULTDICT{tuple_delimiter}None{tuple_delimiter}MODULE IMPORT{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code imports the defaultdict class from the collections module. This suggests that the code may use dictionaries with default values, which is useful for handling missing keys without raising KeyError exceptions.{tuple_delimiter}from collections import defaultdict)
+{record_delimiter}
+(CLICK{tuple_delimiter}None{tuple_delimiter}MODULE IMPORT{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code imports the click module, which is a Python package for creating command-line interfaces. This implies that the code is likely to involve building a CLI application with features such as argument parsing, option handling, and command grouping.{tuple_delimiter}import click)
+{completion_delimiter}
+
+Example 2:
+Entity specification: Python classes, Python modules，Python docstrings
+Claim description:class definitions, inheritance in Python code, class documentation and attributes documentation
+Text:
+class ASTPrinter(ast.NodeVisitor):
+    """ASTPrinter is a class for printing and logging the details of an Abstract Syntax Tree (AST) 
+        node and its children in a structured and indented format.
+
+        Attributes:
+            indentation_level (int): Manages the current level of indentation for printing.
+            log_file (file): The file where the AST details are logged.
+    """
+
+Output:
+(AST{tuple_delimiter}None{tuple_delimiter}MODULE USAGE{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code defines a class named ASTPrinter that inherits from ast.NodeVisitor. This indicates that the code is working with Python's Abstract Syntax Tree (AST) module, which is used for parsing and analyzing Python source code.{tuple_delimiter}class ASTPrinter(ast.NodeVisitor):)
+{record_delimiter}
+(ASTPRINTER{tuple_delimiter}None{tuple_delimiter}CLASS DEFINITION{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code defines a new class named ASTPrinter. This class is likely designed to implement custom functionality for traversing and potentially modifying Python abstract syntax trees, building upon the capabilities provided by the ast.NodeVisitor base class.{tuple_delimiter}class ASTPrinter(ast.NodeVisitor):)
+{record_delimiter}
+(ASTPRINTER{tuple_delimiter}NODEVISITOR{tuple_delimiter}CLASS INHERITANCE{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The ASTPrinter class inherits from ast.NodeVisitor. This suggests that the code implements a custom visitor pattern for traversing and potentially modifying Python abstract syntax trees.{tuple_delimiter}class ASTPrinter(ast.NodeVisitor):)
+{record_delimiter}
+(ASTPRINTER{tuple_delimiter}DOCSTRING{tuple_delimiter}CLASS DOCUMENTATION{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The docstring provides a clear description of the ASTPrinter class, stating its purpose for printing and logging AST node details in a structured format. This indicates good coding practices by including comprehensive class documentation.{tuple_delimiter}"""ASTPrinter is a class for printing and logging the details of an Abstract Syntax Tree (AST) node and its children in a structured and indented format.""")
+{record_delimiter}
+(ASTPRINTER{tuple_delimiter}DOCSTRING{tuple_delimiter}ATTRIBUTE DOCUMENTATION{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The docstring documents two attributes of the ASTPrinter class: 'indentation_level' and 'log_file'. This demonstrates proper documentation of class attributes, providing information about their types and purposes.{tuple_delimiter}Attributes:
+indentation_level (int): Manages the current level of indentation for printing.
+log_file (file): The file where the AST details are logged.)
+{completion_delimiter}
+
+Example 3:
+Entity specification: Python classes, Python methods, Python modules, file operations
+Claim description: class, method definitions, file operations, and their implications in Python code
+Text:
+class A:
+    def __init__(self, log_file_path: str)
+        self.indentation_level = 0
+        if os.path.exists(log_file_path):
+            os.remove(log_file_path)
+            print(f"File: {log_file_path} removed successfully.")
+        else:
+            print(f"File: {log_file_path} does not exist.")
+        # pylint: disable=W1514, R1732
+        self.log_file = open(log_file_path, 'a')
+
+Output:
+
+(A{tuple_delimiter}None{tuple_delimiter}CLASS DEFINITION{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code defines a new class named 'A'. This class appears to be a custom class, potentially designed for handling logging operations based on the parameter in its constructor.{tuple_delimiter}class A:)
+{record_delimiter}
+(A{tuple_delimiter}__INIT__{tuple_delimiter}METHOD DEFINITION{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The class 'A' defines an init method, which serves as the constructor for the class. This method is called when a new instance of the class is created and is used to initialize the object's attributes.{tuple_delimiter}def init(self, log_file_path: str))
+{record_delimiter}
+(__INIT__{tuple_delimiter}LOG_FILE_PATH{tuple_delimiter}PARAMETER USAGE{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The init method takes a parameter 'log_file_path' of type str. This suggests that the class 'A' is likely designed to work with a log file, possibly for writing or reading log data.{tuple_delimiter}def init(self, log_file_path: str))
+{record_delimiter}
+(LOG_FILE_PATH{tuple_delimiter}STR{tuple_delimiter}TYPE HINTING{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses type hinting for the 'log_file_path' parameter, specifying it as a string (str). This demonstrates the use of Python's type hinting feature, which can improve code readability and enable better static type checking.{tuple_delimiter}def init(self, log_file_path: str))
+{record_delimiter}
+(A{tuple_delimiter}INDENTATION_LEVEL{tuple_delimiter}ATTRIBUTE DEFINITION{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The class 'A' defines an attribute 'indentation_level' and initializes it to 0. This attribute is likely used to manage indentation levels for logging or printing purposes.{tuple_delimiter}self.indentation_level = 0)
+{record_delimiter}
+(A{tuple_delimiter}OS{tuple_delimiter}MODULE USAGE{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses the os module to interact with the operating system, specifically to check if a file exists and to remove it. This indicates that the class 'A' is designed to handle file operations.{tuple_delimiter}os.path.exists(log_file_path))
+{record_delimiter}
+(A{tuple_delimiter}OS{tuple_delimiter}MODULE USAGE{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses the os module to remove a file. This suggests that the class 'A' is designed to handle file operations, potentially for logging or data management purposes.{tuple_delimiter}os.remove(log_file_path))
+{record_delimiter}
+(A{tuple_delimiter}LOG_FILE{tuple_delimiter}ATTRIBUTE DEFINITION{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The class 'A' defines an attribute 'log_file' and initializes it by opening a file in append mode. This suggests that the class is designed to write log data to a file.{tuple_delimiter}self.log_file = open(log_file_path, 'a'))
+{completion_delimiter}
+
+-Real Data-
+Use the following input for your answer.
+Entity specification: {entity_specs}
+Claim description: {claim_description}
+Text: {input_text}
+Output:

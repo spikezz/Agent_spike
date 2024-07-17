@@ -1,0 +1,20 @@
+{
+    "version": "0.0.1",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Bash-Debug (select script from list of sh files)",
+            "type": "bashdb",
+            "request": "launch",
+            "scriptPath": "${command:SelectScriptName}",
+            "commandLineArguments": ""
+        }
+    ]
+}
