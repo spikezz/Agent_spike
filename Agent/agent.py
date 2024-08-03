@@ -27,7 +27,17 @@ from prompt import (
     OUTPUT_STRUCTURE_VALIDATE_INSTRUCTION,
 )
 
-KNOWLEDGE_GRAPH_ROOT_PATH="./knowledge_graph"
+def get_git_root():
+    try:
+        # Run the git command to get the top-level directory
+        git_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], stderr=subprocess.STDOUT).strip()
+        return git_root.decode('utf-8')
+    except subprocess.CalledProcessError as e:
+        print("Error: Not a git repository (or any of the parent directories): .git")
+        return None
+
+KNOWLEDGE_GRAPH_ROOT_PATH=f"{get_git_root()}/playground/knowledge_graph"
+PLAYGROUND_ROOT_DIR=f"{get_git_root()}/playground"
 
 def extract_count(line: str) -> Optional[int]:
     """Extracts the count from a given line of text.
@@ -500,9 +510,9 @@ def process_validated_response(role: str, user_input: str, ai_response: str, con
     context+=f"\nAI: \n{ai_response}\n"
     chat_history["chat_history"].append({"user":user_input,"AI":ai_response})
     current_code_blocks = extract_code_blocks(ai_response)
-    os.makedirs("./output/", exist_ok=True)
+    os.makedirs(f"{PLAYGROUND_ROOT_DIR}/output/", exist_ok=True)
     for code_block in current_code_blocks:
-        create_file_with_content(os.path.join("./output/", os.path.basename(code_block['file_path'])),code_block['code'])
+        create_file_with_content(os.path.join(f"{PLAYGROUND_ROOT_DIR}/output/", os.path.basename(code_block['file_path'])),code_block['code'])
     code_blocks_traj.append({"code_block":current_code_blocks})
     return context
 
@@ -540,7 +550,7 @@ def append_graph_context(root_dir: str) -> None:
     Args:
         root_dir (str): The root directory to walk through.
     """       
-    os.makedirs("./knowledge_graph/input/", exist_ok=True)
+    os.makedirs(f"{PLAYGROUND_ROOT_DIR}/knowledge_graph/input/", exist_ok=True)
     for root, dirs, files in os.walk(root_dir):
         for file in files:
             file_stem=Path(file).stem
@@ -548,10 +558,10 @@ def append_graph_context(root_dir: str) -> None:
                 if dir==file_stem:
                     print(f"enter:{dir}")
                     concatenate_files(
-                        f"./output/{file}", f"./output/{dir}/entities.txt",
-                        f"./knowledge_graph/input/{file_stem}.txt"
+                        f"{PLAYGROUND_ROOT_DIR}/output/{file}", f"{PLAYGROUND_ROOT_DIR}/output/{dir}/entities.txt",
+                        f"{PLAYGROUND_ROOT_DIR}/knowledge_graph/input/{file_stem}.txt"
                     )
-                    remove_directory(f"./output/{dir}/")
+                    remove_directory(f"{PLAYGROUND_ROOT_DIR}/output/{dir}/")
 
 def concatenate_files(file1_path: str, file2_path: str, output_path: str) -> None:
     """Concatenates the contents of two files and writes the result to a new file.
@@ -568,6 +578,7 @@ def concatenate_files(file1_path: str, file2_path: str, output_path: str) -> Non
     try:
         with open(file1_path, 'r') as file1, open(file2_path, 'r') as file2, open(output_path, 'w') as output_file:
             # Read and write contents of the first file
+            output_file.write("")
             output_file.write(file1.read())
             # Add a newline between files if needed
             output_file.write('\n')
@@ -624,14 +635,14 @@ def execute_graphrag_bash_command(python_path: str, module: str, root_path: str,
     """   
     if init:
         cmd = [python_path, "-m", "graphrag.index", "--init" ,"--root", root_path]
-        log_file="./graph_building_log.log"
+        log_file=f"{PLAYGROUND_ROOT_DIR}/graph_building_log.log"
     elif module=="graphrag.query":
         cmd = [python_path, "-m", "graphrag.query", "--root", root_path, "--method",query_type, f"\"{query}\""]
-        log_file="./graph_query_log.log"
+        log_file=f"{PLAYGROUND_ROOT_DIR}/graph_query_log.log"
     else:
         cmd = [python_path, "-m", "graphrag.index", "--root", root_path]
-        log_file="./graph_building_log.log"
-    print(cmd)
+        log_file=f"{PLAYGROUND_ROOT_DIR}/graph_building_log.log"
+    print(f"running cmd: {cmd}")
     try:
         with open(log_file, 'a') as log:
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, universal_newlines=True)
@@ -654,6 +665,46 @@ def execute_graphrag_bash_command(python_path: str, module: str, root_path: str,
     except Exception as e:
         logging.error(f"Unexpected error: {str(e)}")
 
+def find_directory(root_dir, target_dir_name):
+    for dirpath, dirnames, filenames in os.walk(root_dir):
+        if target_dir_name in dirnames:
+            return os.path.join(dirpath, target_dir_name)
+    return None
+
+def find_file(root_dir, target_file_name):
+    for dirpath, dirnames, filenames in os.walk(root_dir):
+        if target_file_name in filenames:
+            return os.path.join(dirpath, target_file_name)
+    return None
+
+def replace_file(root_dir):
+    # Find source directories and files
+    source_prompts_dir = find_directory(root_dir, 'code_explainer_prompts')
+    source_settings_file = find_file(root_dir, 'settigns.yaml')
+
+    if not source_prompts_dir or not source_settings_file:
+        print('Required directories or files not found.')
+        return
+
+    # Define destination directories and files
+    destination_prompts_dir = os.path.join(root_dir, 'playground/knowledge_graph/prompts')
+    destination_settings_file = os.path.join(root_dir, 'playground/knowledge_graph/settings.yaml')
+
+    # Ensure the destination directories exist
+    os.makedirs(destination_prompts_dir, exist_ok=True)
+
+    # Copy prompt files
+    for filename in os.listdir(source_prompts_dir):
+        source_file = os.path.join(source_prompts_dir, filename)
+        destination_file = os.path.join(destination_prompts_dir, filename)
+        if os.path.isfile(source_file):
+            shutil.copy2(source_file, destination_file)
+            print(f'Copied {source_file} to {destination_file}')
+
+    # Copy settings file
+    shutil.copy2(source_settings_file, destination_settings_file)
+    print(f'Copied {source_settings_file} to {destination_settings_file}')
+
 @click.command()
 @click.option('--llm', default="gpt-4o-mini", help='llm model.')
 @click.option('--graph-ready', '-gr', is_flag=True, help='Indicates if it is ready to query knowledge graph.')
@@ -672,7 +723,7 @@ def main(llm:str,graph_ready:bool,python_path:str) -> None:
         graph_ready (bool): A flag indicating whether the knowledge graph is ready for querying.
         python_path (str): The path to the Python interpreter to use for executing commands related to the
         knowledge graph.
-    """    
+    """ 
     code_blocks_traj=[]
     chat_history={"chat_history":[]}
     context=""
@@ -687,12 +738,12 @@ def main(llm:str,graph_ready:bool,python_path:str) -> None:
         elif user_input.lower() == '/pcg':
             print(f"user:\n{user_input}\n")
             graph_ready=False
-            split_python_file("./input","./output")
+            split_python_file(f"{PLAYGROUND_ROOT_DIR}/input",f"{PLAYGROUND_ROOT_DIR}/output")
             continue
         elif user_input.lower() == '/cg':
             print(f"user:\n{user_input}\n")
-            graph_builder.prepare_input_docs("./output")
-            append_graph_context('./output')
+            graph_builder.prepare_input_docs(f"{PLAYGROUND_ROOT_DIR}/output")
+            append_graph_context(f"{PLAYGROUND_ROOT_DIR}/output")
             continue
         elif user_input.lower() == '/itg':
             print(f"user:\n{user_input}\n")
@@ -706,10 +757,11 @@ def main(llm:str,graph_ready:bool,python_path:str) -> None:
                 print("Command execution completed successfully.")
             else:
                 print("Command execution failed.")
+            replace_file(get_git_root())
+            print("Please copy the API key to .env by needs.")
             continue
         elif user_input.lower() == '/ixg':
             print(f"user:\n{user_input}\n")
-            print('please prepare settings and prompts manually! seeing log "graph_building_log.log"')
             result,output = execute_graphrag_bash_command(python_path,
                                            "graphrag.index",
                                            KNOWLEDGE_GRAPH_ROOT_PATH,
@@ -773,11 +825,125 @@ def main(llm:str,graph_ready:bool,python_path:str) -> None:
                     break
         if not validate_response:
             raise "Bad output!"
-        dump_dict_to_json("./code_blocks.json",{"code_blocks_traj":code_blocks_traj, "validator_triggered":validator_triggered})
-        dump_dict_to_json("./chat_history.json",chat_history)
+        dump_dict_to_json(f"{PLAYGROUND_ROOT_DIR}/code_blocks.json",{"code_blocks_traj":code_blocks_traj, "validator_triggered":validator_triggered})
+        dump_dict_to_json(f"{PLAYGROUND_ROOT_DIR}/chat_history.json",chat_history)
         # Dump context
-        create_file_with_content("./context.log",context)
+        create_file_with_content(f"{PLAYGROUND_ROOT_DIR}/context.log",context)
         turn_idx+=1
+
+# def handle_quit():
+#     print("Goodbye!")
+
+# def handle_prepare_create_graph(user_input: str):
+#     print(f"user:\n{user_input}\n")
+#     split_python_file("./input", "./output")
+
+# def handle_create_graph(user_input: str):
+#     print(f"user:\n{user_input}\n")
+#     graph_builder.prepare_input_docs("./output")
+#     append_graph_context('./output')
+
+# def handle_initialize_graph(user_input: str,python_path: str) -> bool:
+#     print(f"user:\n{user_input}\n")
+#     result, output = execute_graphrag_bash_command(python_path, "graphrag.index", KNOWLEDGE_GRAPH_ROOT_PATH, init=True)
+#     print("Command execution completed successfully." if result else "Command execution failed.")
+#     return result
+
+# def handle_index_graph(user_input:str,python_path: str) -> bool:
+#     print(f"user:\n{user_input}\n")
+#     print('please prepare settings and prompts manually! seeing log "graph_building_log.log"')
+#     result, output = execute_graphrag_bash_command(python_path, "graphrag.index", KNOWLEDGE_GRAPH_ROOT_PATH)
+#     print("Command execution completed successfully." if result else "Command execution failed.")
+    
+#     csv_import_folder_path = os.path.join(KNOWLEDGE_GRAPH_ROOT_PATH, "import")
+#     os.makedirs(csv_import_folder_path, exist_ok=True)
+#     output_folders = [(datetime.datetime.fromtimestamp(os.path.getctime(os.path.join(KNOWLEDGE_GRAPH_ROOT_PATH, "output", item))), os.path.join(KNOWLEDGE_GRAPH_ROOT_PATH, "output", item)) for item in os.listdir(os.path.join(KNOWLEDGE_GRAPH_ROOT_PATH, "output")) if os.path.isdir(os.path.join(KNOWLEDGE_GRAPH_ROOT_PATH, "output", item))]
+#     last_output_dir_path = sorted(output_folders, key=lambda x: x[0], reverse=True)[0][1] + "/artifacts"
+#     convert_parquet_to_csv_func(last_output_dir_path, csv_import_folder_path)
+#     return True
+
+# def handle_query_graph(user_input: str, python_path: str):
+#     print(f"user:\n{user_input}\n")
+#     user_input = input("user: ")
+#     query_type = "local"
+#     if user_input.lower() == '/g':
+#         print(f"user:\n{user_input}\n")
+#         query_type = "global"
+#         user_input = input("user: ")
+#     print(f"user:\n{user_input}\n")
+#     result, output = execute_graphrag_bash_command(python_path, "graphrag.query", KNOWLEDGE_GRAPH_ROOT_PATH, query_type=query_type, query=user_input)
+#     if result:
+#         print("query response:")
+#         print(output)
+
+# def handle_ai_response(context: str, user_input: str, llm: str, chat_history: dict, code_blocks_traj: list, validator_triggered: int) -> (str, bool):
+#     validate_response = False
+#     system_prompt = SYSTEM_PROMPT_DEVELOPER + OUTPUT_FORMAT_INSTRUCTION
+#     for retry in range(2):
+#         print(f"retry:{retry}")
+#         origin_ai_response = get_api_response(context, system_prompt, llm)
+#         if test_code_block_format(origin_ai_response):
+#             context = process_validated_response(None, user_input, origin_ai_response, context, chat_history, code_blocks_traj)
+#             validate_response = True
+#             break
+#         else:
+#             validator_triggered += 1
+#             regex_test_result = analyse_code_block_format(origin_ai_response)
+#             validate_prompt = get_validate_prompt(origin_ai_response, regex_test_result)
+#             print(f"AI_validator:\n{validate_prompt}\n")
+#             validate_ai_response = get_api_response(validate_prompt, OUTPUT_STRUCTURE_VALIDATE_INSTRUCTION, "gpt-4o-mini")
+#             if test_code_block_format(validate_ai_response):
+#                 context = process_validated_response("AI_validator", validate_prompt, validate_ai_response, context, chat_history, code_blocks_traj)
+#                 validate_response = True
+#                 break
+#     return context, validate_response
+
+# @click.command()
+# @click.option('--llm', default="gpt-4o-mini", help='llm model.')
+# @click.option('--graph-ready', '-gr', is_flag=True, help='Indicates if it is ready to query knowledge graph.')
+# @click.option("--python-path", type=str, default="python3")
+# def main(llm: str, graph_ready: bool, python_path: str) -> None:
+#     """Main function to interact with the AI model and knowledge graph."""
+#     code_blocks_traj = []
+#     chat_history = {"chat_history": []}
+#     context = ""
+#     turn_idx = 0
+#     validator_triggered = 0
+
+#     while True:
+#         print(f"Chat round {turn_idx}:")
+#         user_input = input("user: ")
+
+#         if user_input.lower() == '/q':
+#             handle_quit()
+#             break
+#         elif user_input.lower() == '/pcg':
+#             handle_prepare_create_graph(user_input)
+#             graph_ready = False
+#             continue
+#         elif user_input.lower() == '/cg':
+#             handle_create_graph(user_input)
+#             continue
+#         elif user_input.lower() == '/itg':
+#             graph_ready = handle_initialize_graph(python_path)
+#             continue
+#         elif user_input.lower() == '/ixg':
+#             graph_ready = handle_index_graph(python_path)
+#             continue
+#         elif graph_ready and user_input.lower() == '/qg':
+#             handle_query_graph(user_input, python_path)
+#             continue
+
+#         context += f"\nuser:\n{user_input}\n"
+#         context, validate_response = handle_ai_response(context, user_input, llm, chat_history, code_blocks_traj, validator_triggered)
+        
+#         if not validate_response:
+#             raise Exception("Bad output!")
+
+#         dump_dict_to_json("./code_blocks.json", {"code_blocks_traj": code_blocks_traj, "validator_triggered": validator_triggered})
+#         dump_dict_to_json("./chat_history.json", chat_history)
+#         create_file_with_content("./context.log", context)
+#         turn_idx += 1
 
 if __name__ == "__main__":
     main()

@@ -95,6 +95,9 @@ class ASTPrinter(ast.NodeVisitor):
                 message += f" (arg: {node.arg})"
             if hasattr(node, 'attr'):
                 message += f" (attr: {node.attr})"
+            if isinstance(node, ast.alias):
+                if node.asname:
+                    message += f" (asname: {node.asname})"
             self.log(message)  # Log the message
             # Visit children of the current node
             self.indentation_level += 1
@@ -150,7 +153,12 @@ class CodeVisitor(ast.NodeVisitor):
             node (ast.ClassDef): The ClassDef node being visited.
         """
         # Update for handling inheritance
-        base_classes = [base.id for base in node.bases if isinstance(base, ast.Name)]
+        base_classes = []
+        for base in node.bases:
+            if isinstance(base, ast.Name):
+                base_classes.append(base.id)
+            elif isinstance(base, ast.Attribute):
+                base_classes.append(f"{base.value.id}.{base.attr}")
         class_name = node.name
         self.current_scope.append("(class)" + class_name)
         self.graph[self.filename]['classes'].add(self.build_key_from_current_scope())
@@ -302,6 +310,16 @@ def replace_file_path(original_string: str, replacement: str) ->str:
     pattern = r'\(file\)(.*?)->'
     return re.sub(pattern, f'(file){replacement}->', original_string)
 
+
+def get_indent_delta(last_indent:int, current_indent:int,log_file_path:str)->str:
+    delta_indent=current_indent-last_indent
+    if delta_indent==0:
+        raise(f"indent error in log {log_file_path}")
+    elif delta_indent>0:
+        return "right"
+    else:
+        return "left"
+
 def extract_entities_and_relationships(log_file_path: str, source_file: str, graph: dict) ->None:
     """Extracts entities and their relationships from a source file and logs them.
 
@@ -319,26 +337,71 @@ def extract_entities_and_relationships(log_file_path: str, source_file: str, gra
     """    
     output_file_path = Path(log_file_path).parent / "entities.txt"
     print(f"converting{log_file_path} to {output_file_path}")
-    code_doc = ENTITY_EXTRACTION
+    code_doc=RELATIONSHIP_EXTRACTION
+    code_doc+=json.dumps(graph[source_file], indent=4,default=list)
+    code_doc=replace_file_path(code_doc,"./sourec.py")
+    code_doc += ENTITY_EXTRACTION
     with open(log_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
         line_num = len(lines)
         entity_set = set()
+        in_class=False
+        current_class_indent=[]
         for line_idx, line in enumerate(lines):
+            stripped_line = line.lstrip()
+            current_line_indent = len(line) - len(stripped_line)
+            if current_class_indent:
+                if current_line_indent<=current_class_indent[0]:
+                    in_class=False
+                    current_class_indent=[]
             entity_name = ""
             entity_type = ""
-            if "(name:" in line:
-                entity_name=line.strip().split("name:")[1].split(")")[0].strip()
+            if "ClassDef (" in line:
+                print(line)
+                entity_name = line.strip().split("(name:")[1].split(")")[0].strip()
+                entity_type = "class"
+                current_class_indent.append(current_line_indent)
+                in_class=True
+            elif "FunctionDef (" in line:
+                entity_name = line.strip().split("(name:")[1].split(")")[0].strip()
+                if in_class:
+                    entity_type = "method"
+                else:
+                    entity_type = "function"
+            elif "(name:" in line:
+                if "(asname:" in line:
+                    entity_name=line.strip().split("(asname:")[1].split(")")[0].strip()
+                    entity_type = "module"
+                else:
+                    entity_name=line.strip().split("(name:")[1].split(")")[0].strip()
+                if "Import" in lines[line_idx - 1] or"ImportFrom" in lines[line_idx - 1]:
+                    entity_type = "module"
             elif "(id:" in line:
                 entity_name=line.strip().split("id:")[1].split(")")[0].strip()
                 if entity_name == "self":
                     continue
+                if "(arg:" in lines[line_idx - 1]:
+                    entity_type = "type"
+                elif "Call" in lines[line_idx - 1]:
+                    entity_type = "function call"
+                elif (entity_name,"module") in entity_set:
+                    entity_type = "module usage"
+                else:
+                    entity_type = "variable"
             elif "(arg:" in line:
                 entity_name=line.strip().split("arg:")[1].split(")")[0].strip()
                 entity_type="argument"
             elif "(attr:" in line:
                 entity_name=line.strip().split("attr:")[1].split(")")[0].strip()
-                entity_name,entity_type=check_entity_in_next_line(lines,entity_name,line_idx,line_num)
+                if line_idx + 1 < line_num:
+                    if "(id:" in lines[line_idx + 1]:
+                        next_entity_name = lines[line_idx + 1].strip().split("id:")[1].split(")")[0].strip()
+                        if next_entity_name == "self":
+                            entity_name="self." + entity_name
+                if "Call" in lines[line_idx - 1]:
+                    entity_type = "function call"
+                else:
+                    entity_type="attribute"
             if entity_name:
                 if (entity_name,entity_type) not in entity_set:
                     entity_set.add((entity_name,entity_type))
@@ -346,10 +409,9 @@ def extract_entities_and_relationships(log_file_path: str, source_file: str, gra
                         code_doc+=f'("entity"{{tuple_delimiter}}"{entity_name}"{{tuple_delimiter}}"{entity_type}"{{tuple_delimiter}}...)\n'
                     else:
                         code_doc+=f'("entity"{{tuple_delimiter}}"{entity_name}"{{tuple_delimiter}}...)\n'
+    code_doc+="...\n"
     code_doc+='("relationship"{tuple_delimiter}...)\n'
-    code_doc+=RELATIONSHIP_EXTRACTION
-    code_doc+=json.dumps(graph[source_file], indent=4,default=list)
-    code_doc=replace_file_path(code_doc,"./sourec.py")
+    code_doc+="...\n"
     with open(output_file_path, 'w', encoding='utf-8') as output_file:
         output_file.write(get_blocked_text(code_doc,"# "))
 

@@ -2,7 +2,6 @@ import os
 import ast
 import click
 import astor
-from collections import defaultdict
 
 class CodeSplitter(ast.NodeVisitor):
     """Splits a Python file into separate files based on function and class method definitions."""
@@ -16,15 +15,17 @@ class CodeSplitter(ast.NodeVisitor):
         self.file_counter = 0
         self.global_code = []
         self.processed_classes = set()
-        self.imported_names = defaultdict(list)
+        self.alias_to_module = {}
 
     def visit_Import(self, node):
         for alias in node.names:
-            self.imports.append((alias.name, f"import {alias.name}\n"))
+            self.imports.append((alias.name, alias.asname, f"import {alias.name}" + (f" as {alias.asname}" if alias.asname else "") + "\n"))
+            self.alias_to_module[alias.asname or alias.name] = alias.name
 
     def visit_ImportFrom(self, node):
         for alias in node.names:
-            self.from_imports.append((alias.name, f"from {node.module} import {alias.name}\n"))
+            self.from_imports.append((alias.name, alias.asname, f"from {node.module} import {alias.name}" + (f" as {alias.asname}" if alias.asname else "") + "\n"))
+            self.alias_to_module[alias.asname or alias.name] = alias.name
 
     def visit_ClassDef(self, node):
         self.current_class = node
@@ -51,7 +52,7 @@ class CodeSplitter(ast.NodeVisitor):
         used_imports = self.get_used_imports(node)
         new_tree = ast.Module(body=used_imports + [node])
         new_content = astor.to_source(new_tree)
-        new_filename = f"./{self.original_filename.split('.')[0]}_{self.file_counter}_v0.py"
+        new_filename = f"{self.original_filename.split('.')[0]}_{self.file_counter}_v0.py"
         self.output_files.append((new_filename, new_content))
         self.file_counter += 1
 
@@ -76,7 +77,7 @@ class CodeSplitter(ast.NodeVisitor):
         used_imports = self.get_used_imports(class_copy)
         new_tree = ast.Module(body=used_imports + [class_copy])
         new_content = astor.to_source(new_tree)
-        new_filename = f"./{self.original_filename.split('.')[0]}_{self.file_counter}_v0.py"
+        new_filename = f"{self.original_filename.split('.')[0]}_{self.file_counter}_v0.py"
         self.output_files.append((new_filename, new_content))
         self.file_counter += 1
 
@@ -86,7 +87,7 @@ class CodeSplitter(ast.NodeVisitor):
             used_imports = self.get_used_imports(global_module)
             new_tree = ast.Module(body=used_imports + self.global_code)
             new_content = astor.to_source(new_tree)
-            new_filename = f"./{self.original_filename.split('.')[0]}_global_v0.py"
+            new_filename = f"{self.original_filename.split('.')[0]}_global_v0.py"
             self.output_files.append((new_filename, new_content))
 
     def get_used_imports(self, node):
@@ -102,10 +103,15 @@ class CodeSplitter(ast.NodeVisitor):
                         used_names.add(base.id)
                     elif isinstance(base, ast.Attribute):
                         used_names.add(base.attr)
+            elif isinstance(n, ast.Call):
+                if isinstance(n.func, ast.Name):
+                    used_names.add(n.func.id)
+                elif isinstance(n.func, ast.Attribute):
+                    used_names.add(n.func.attr)
 
         used_imports = []
-        for name, import_stmt in self.imports + self.from_imports:
-            if name in used_names:
+        for name, asname, import_stmt in self.imports + self.from_imports:
+            if name in used_names or asname in used_names:
                 used_imports.append(import_stmt)
 
         return used_imports

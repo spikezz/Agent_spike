@@ -51,9 +51,13 @@ Overall, keep your response extreamly short and precise.
 """
 
 ENTITY_EXTRACTION="""
-Entity_types: [module, class, method, function, variable, argument, attribute, type]
+
+Entity_types: [module, module usage, class, method, function, function call, variable, argument, attribute, type]
+
 Complete the Output:
+
 """
 RELATIONSHIP_EXTRACTION="""
 The known relationships are:
+
 """

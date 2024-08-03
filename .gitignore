@@ -1,3 +1,8 @@
 .DS_Store
-playground*/
+playground/*
+!playground/.gitkeep
+!playground/input/
+playground/input/*
+!playground/input/.gitkeep
 __pycache__/
+graphrag*/

@@ -15,6 +15,16 @@
             "request": "launch",
             "scriptPath": "${command:SelectScriptName}",
             "commandLineArguments": ""
+        },
+        {
+            "name": "Python: Agent",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/spikezz/Project/Agent_spike/Agent/agent.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "cwd": "/home/spikezz/Project/Agent_spike/Agent/playground",
+            "python": "/home/spikezz/.conda/envs/py312/bin/python"
         }
     ]
 }
