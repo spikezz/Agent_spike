@@ -6,7 +6,7 @@ CREATE (bd:BaseDocument {
     raw_content: row.raw_content,
     text_unit_ids: row.text_unit_ids
 });
-
+//
 // 2. Import Base Text Units
 LOAD CSV WITH HEADERS FROM 'file:///create_base_text_units.csv' AS row
 CREATE (bt:BaseTextUnit {
