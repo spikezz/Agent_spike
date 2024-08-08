@@ -23,8 +23,8 @@
             "program": "/home/spikezz/Project/Agent_spike/Agent/agent.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "cwd": "/home/spikezz/Project/Agent_spike/Agent/playground",
-            "python": "/home/spikezz/.conda/envs/py312/bin/python"
+            "cwd": "/home/spikezz/Project/Agent_spike/",
+            "python": "/home/spikezz/anaconda3/envs/py312/bin/python"
         }
     ]
 }

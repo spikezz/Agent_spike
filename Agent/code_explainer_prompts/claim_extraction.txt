@@ -9,9 +9,9 @@ Given a Python and Bash source code file or text document that is potentially re
 1. Extract all named entities that match the predefined entity specification. Entity specification can either be a list of entity names or a list of entity types. Be cautious to avoid duplication when extracting entities.
 2. For each entity identified in step 1, extract all claims associated with the entity. Claims need to match the specified claim description, and the entity should be the subject of the claim.
 For each claim, extract the following information:
-- Subject: name of the entity that is subject of the claim. The subject entity is one that committed the action described in the claim. Subject needs to be one of the named entities identified in step 1.
-- Object: name of the entity that is object of the claim. The object entity is one that either reports/handles or is affected by the action described in the claim. If object entity is unknown, use **NONE**.
-- Claim Type: overall category of the claim. Name it in a way that can be repeated across multiple text inputs, so that similar claims share the same claim type
+- Subject: name of the entity that is subject of the claim, capitalized. The subject entity is one that committed the action described in the claim. Subject needs to be one of the named entities identified in step 1.
+- Object: name of the entity that is object of the claim, capitalized. The object entity is one that either reports/handles or is affected by the action described in the claim. If object entity is unknown, use **NONE**.
+- Claim Type: overall category of the claim, capitalized. Name it in a way that can be repeated across multiple text inputs, so that similar claims share the same claim type
 - Claim Status: **TRUE**, **FALSE**, or **SUSPECTED**. TRUE means the claim is confirmed, FALSE means the claim is found to be False, SUSPECTED means the claim is not verified.
 - Claim Description: Detailed description explaining the reasoning behind the claim, together with all the related evidence and references.
 - Claim Date: Period (start_date, end_date) when the claim was made. Both start_date and end_date should be in ISO-8601 format. If the claim was made on a single date rather than a date range, set the same date for both start_date and end_date. If date is unknown, return **NONE**.
@@ -91,15 +91,15 @@ Output:
 {record_delimiter}
 (log_file_path{tuple_delimiter}str{tuple_delimiter}type hinting{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses type hinting for the 'log_file_path' parameter, specifying it as a string (str). This demonstrates the use of Python's type hinting feature, which can improve code readability and enable better static type checking.{tuple_delimiter}def init(self, log_file_path: str))
 {record_delimiter}
-(ASTPrinter{tuple_delimiter}self.indentation_level{tuple_delimiter}attribute definition{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The class 'ASTPrinter' defines an attribute 'indentation_level' and initializes it to 0. This attribute is likely used to manage indentation levels for logging or printing purposes.{tuple_delimiter}self.indentation_level = 0)
+(__INIT__{tuple_delimiter}self.indentation_level{tuple_delimiter}attribute definition{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The class 'ASTPrinter' defines an attribute 'indentation_level' and initializes it to 0. This attribute is likely used to manage indentation levels for logging or printing purposes.{tuple_delimiter}self.indentation_level = 0)
 {record_delimiter}
-(ASTPrinter{tuple_delimiter}os.path.exists{tuple_delimiter}module usage{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses the os.path.exists module to check if a file exists and to remove it. This indicates that the class 'ASTPrinter' is designed to handle file operations.{tuple_delimiter}os.path.exists(log_file_path))
+(__INIT__{tuple_delimiter}os.path.exists{tuple_delimiter}module usage{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses the os.path.exists module to check if a file exists and to remove it. This indicates that the class 'ASTPrinter' is designed to handle file operations.{tuple_delimiter}os.path.exists(log_file_path))
 {record_delimiter}
-(ASTPrinter{tuple_delimiter}os.remove{tuple_delimiter}module usage{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses the os module to remove a file. This suggests that the class 'ASTPrinter' is designed to handle file operations, potentially for logging or data management purposes.{tuple_delimiter}os.remove(log_file_path))
+(__INIT__{tuple_delimiter}os.remove{tuple_delimiter}module usage{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses the os module to remove a file. This suggests that the class 'ASTPrinter' is designed to handle file operations, potentially for logging or data management purposes.{tuple_delimiter}os.remove(log_file_path))
 {record_delimiter}
-(ASTPrinter{tuple_delimiter}print{tuple_delimiter}function call{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses the print function to output messages indicating the success or failure of file removal. This implies that the class 'ASTPrinter' provides feedback to the user about file operations.{tuple_delimiter}print(f"File: {log_file_path} removed successfully."))
+(__INIT__{tuple_delimiter}print{tuple_delimiter}function call{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses the print function to output messages indicating the success or failure of file removal. This implies that the class 'ASTPrinter' provides feedback to the user about file operations.{tuple_delimiter}print(f"File: {log_file_path} removed successfully."))
 {record_delimiter}
-(ASTPrinter{tuple_delimiter}open{tuple_delimiter}function call{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses the open function to open a log file in append mode ('a'). This indicates that the class 'ASTPrinter' is designed to log information to a file.{tuple_delimiter}self.log_file = open(log_file_path, 'a'))
+(__INIT__{tuple_delimiter}open{tuple_delimiter}function call{tuple_delimiter}TRUE{tuple_delimiter}NONE{tuple_delimiter}NONE{tuple_delimiter}The code uses the open function to open a log file in append mode ('a'). This indicates that the class 'ASTPrinter' is designed to log information to a file.{tuple_delimiter}self.log_file = open(log_file_path, 'a'))
 {completion_delimiter}
 
 -Real Data-

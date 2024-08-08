@@ -52,7 +52,7 @@ embeddings:
 
 
 chunks:
-  size: 20000
+  size: 30000
   overlap: 0
   group_by_columns: [id] # by default, we don't allow chunks to cross documents
     
@@ -87,7 +87,7 @@ entity_extraction:
   ## async_mode: override the global async_mode settings for this task
   prompt: "prompts/entity_extraction.txt"
   entity_types:  [module, module usage, class, method, function, function call, variable, argument, attribute, type]
-  max_gleanings: 0
+  max_gleanings: 3
 
 summarize_descriptions:
   ## llm: override the global llm settings for this task
@@ -103,7 +103,7 @@ claim_extraction:
   # enabled: true
   prompt: "prompts/claim_extraction.txt"
   description: "Any claims or facts that could be relevant to information discovery."
-  max_gleanings: 0
+  max_gleanings: 1
 
 community_reports:
   ## llm: override the global llm settings for this task
@@ -141,7 +141,7 @@ local_search:
   # llm_temperature: 0 # temperature for sampling
   # llm_top_p: 1 # top-p sampling
   # llm_n: 1 # Number of completions to generate
-  max_tokens: 30000
+  max_tokens: 32000
 
 global_search:
   # llm_temperature: 0 # temperature for sampling

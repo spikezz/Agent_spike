@@ -4,11 +4,12 @@ Given a source code file include text as comment or explanation, that is potenti
 
 -Steps-
 1. Identify all entities. For each identified entity, extract the following information:
-- entity_name: Name of the entity.
+- entity_name: Name of the entity, capitalized
 - entity_type: One of the following types: [{entity_types}]
 - entity_description: Comprehensive description of the entity's attributes and activities
 Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>)
 be cautious to avoid the duplication of the combination of entity_name and entity_type when extracting entities.
+IMPORTANT! Do not invent or fabricate any entities that do not exist in the given text. If there are no entities present in the current text unit, leave it empty as is.
 
 2. From the entities identified in step 1, identify all pairs of (source_entity, target_entity) that are *clearly related* to each other.
 For each pair of related entities, extract the following information:
@@ -27,33 +28,63 @@ For each pair of related entities, extract the following information:
 ######################
 Example 1:
 
-Entity_types: [person, role, technology, organization, event, location, concept]
+Entity_types: ORGANIZATION,GEO,PERSON
 Text:
-their voice slicing through the buzz of activity. "Control may be an illusion when facing an intelligence that literally writes its own rules," they stated stoically, casting a watchful eye over the flurry of data.
+Five Aurelians jailed for 8 years in Firuzabad and widely regarded as hostages are on their way home to Aurelia.
 
-"It's like it's learning to communicate," offered Sam Rivera from a nearby interface, their youthful energy boding a mix of awe and anxiety. "This gives talking to strangers' a whole new meaning."
+The swap orchestrated by Quintara was finalized when $8bn of Firuzi funds were transferred to financial institutions in Krohaara, the capital of Quintara.
 
-Alex surveyed his team—each face a study in concentration, determination, and not a small measure of trepidation. "This might well be our first contact," he acknowledged, "And we need to be ready for whatever answers back."
+The exchange initiated in Firuzabad's capital, Tiruzia, led to the four men and one woman, who are also Firuzi nationals, boarding a chartered flight to Krohaara.
 
-Together, they stood on the edge of the unknown, forging humanity's response to a message from the heavens. The ensuing silence was palpable—a collective introspection about their role in this grand cosmic play, one that could rewrite human history.
+They were welcomed by senior Aurelian officials and are now on their way to Aurelia's capital, Cashion.
 
-The encrypted dialogue continued to unfold, its intricate patterns showing an almost uncanny anticipation
-#############
+The Aurelians include 39-year-old businessman Samuel Namara, who has been held in Tiruzia's Alhamia Prison, as well as journalist Durke Bataglani, 59, and environmentalist Meggie Tazbah, 53, who also holds Bratinas nationality.
+######################
 Output:
-("entity"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"person"{tuple_delimiter}"Sam Rivera is a member of a team working on communicating with an unknown intelligence, showing a mix of awe and anxiety."){record_delimiter}
-("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is the leader of a team attempting first contact with an unknown intelligence, acknowledging the significance of their task."){record_delimiter}
-("entity"{tuple_delimiter}"Control"{tuple_delimiter}"concept"{tuple_delimiter}"Control refers to the ability to manage or govern, which is challenged by an intelligence that writes its own rules."){record_delimiter}
-("entity"{tuple_delimiter}"Intelligence"{tuple_delimiter}"concept"{tuple_delimiter}"Intelligence here refers to an unknown entity capable of writing its own rules and learning to communicate."){record_delimiter}
-("entity"{tuple_delimiter}"First Contact"{tuple_delimiter}"event"{tuple_delimiter}"First Contact is the potential initial communication between humanity and an unknown intelligence."){record_delimiter}
-("entity"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"event"{tuple_delimiter}"Humanity's Response is the collective action taken by Alex's team in response to a message from an unknown intelligence."){record_delimiter}
-("relationship"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"Intelligence"{tuple_delimiter}"Sam Rivera is directly involved in the process of learning to communicate with the unknown intelligence."{tuple_delimiter}9){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"First Contact"{tuple_delimiter}"Alex leads the team that might be making the First Contact with the unknown intelligence."{tuple_delimiter}10){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"Alex and his team are the key figures in Humanity's Response to the unknown intelligence."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"Control"{tuple_delimiter}"Intelligence"{tuple_delimiter}"The concept of Control is challenged by the Intelligence that writes its own rules."{tuple_delimiter}7){completion_delimiter}
+("entity"{tuple_delimiter}FIRUZABAD{tuple_delimiter}GEO{tuple_delimiter}Firuzabad held Aurelians as hostages)
+{record_delimiter}
+("entity"{tuple_delimiter}AURELIA{tuple_delimiter}GEO{tuple_delimiter}Country seeking to release hostages)
+{record_delimiter}
+("entity"{tuple_delimiter}QUINTARA{tuple_delimiter}GEO{tuple_delimiter}Country that negotiated a swap of money in exchange for hostages)
+{record_delimiter}
+("entity"{tuple_delimiter}TIRUZIA{tuple_delimiter}GEO{tuple_delimiter}Capital of Firuzabad where the Aurelians were being held)
+{record_delimiter}
+("entity"{tuple_delimiter}KROHAARA{tuple_delimiter}GEO{tuple_delimiter}Capital city in Quintara)
+{record_delimiter}
+("entity"{tuple_delimiter}CASHION{tuple_delimiter}GEO{tuple_delimiter}Capital city in Aurelia)
+{record_delimiter}
+("entity"{tuple_delimiter}SAMUEL NAMARA{tuple_delimiter}PERSON{tuple_delimiter}Aurelian who spent time in Tiruzia's Alhamia Prison)
+{record_delimiter}
+("entity"{tuple_delimiter}ALHAMIA PRISON{tuple_delimiter}GEO{tuple_delimiter}Prison in Tiruzia)
+{record_delimiter}
+("entity"{tuple_delimiter}DURKE BATAGLANI{tuple_delimiter}PERSON{tuple_delimiter}Aurelian journalist who was held hostage)
+{record_delimiter}
+("entity"{tuple_delimiter}MEGGIE TAZBAH{tuple_delimiter}PERSON{tuple_delimiter}Bratinas national and environmentalist who was held hostage)
+{record_delimiter}
+("relationship"{tuple_delimiter}FIRUZABAD{tuple_delimiter}AURELIA{tuple_delimiter}Firuzabad negotiated a hostage exchange with Aurelia{tuple_delimiter}2)
+{record_delimiter}
+("relationship"{tuple_delimiter}QUINTARA{tuple_delimiter}AURELIA{tuple_delimiter}Quintara brokered the hostage exchange between Firuzabad and Aurelia{tuple_delimiter}2)
+{record_delimiter}
+("relationship"{tuple_delimiter}QUINTARA{tuple_delimiter}FIRUZABAD{tuple_delimiter}Quintara brokered the hostage exchange between Firuzabad and Aurelia{tuple_delimiter}2)
+{record_delimiter}
+("relationship"{tuple_delimiter}SAMUEL NAMARA{tuple_delimiter}ALHAMIA PRISON{tuple_delimiter}Samuel Namara was a prisoner at Alhamia prison{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}SAMUEL NAMARA{tuple_delimiter}MEGGIE TAZBAH{tuple_delimiter}Samuel Namara and Meggie Tazbah were exchanged in the same hostage release{tuple_delimiter}2)
+{record_delimiter}
+("relationship"{tuple_delimiter}SAMUEL NAMARA{tuple_delimiter}DURKE BATAGLANI{tuple_delimiter}Samuel Namara and Durke Bataglani were exchanged in the same hostage release{tuple_delimiter}2)
+{record_delimiter}
+("relationship"{tuple_delimiter}MEGGIE TAZBAH{tuple_delimiter}DURKE BATAGLANI{tuple_delimiter}Meggie Tazbah and Durke Bataglani were exchanged in the same hostage release{tuple_delimiter}2)
+{record_delimiter}
+("relationship"{tuple_delimiter}SAMUEL NAMARA{tuple_delimiter}FIRUZABAD{tuple_delimiter}Samuel Namara was a hostage in Firuzabad{tuple_delimiter}2)
+{record_delimiter}
+("relationship"{tuple_delimiter}MEGGIE TAZBAH{tuple_delimiter}FIRUZABAD{tuple_delimiter}Meggie Tazbah was a hostage in Firuzabad{tuple_delimiter}2)
+{record_delimiter}
+("relationship"{tuple_delimiter}DURKE BATAGLANI{tuple_delimiter}FIRUZABAD{tuple_delimiter}Durke Bataglani was a hostage in Firuzabad{tuple_delimiter}2)
+{completion_delimiter}
 #############################
 Example 2:
 
-Entity_types: [module, module usage, class, method, function, function call, variable, argument, attribute, type]
+Entity_types: MODULE, MODULE USAGE, CLASS, METHOD, FUNCTION, FUNCTION CALL, VARIABLE, ARGUMENT, ATTRIBUTE, TYPE
 Text:
 import os
 import ast
@@ -76,40 +107,74 @@ class ASTPrinter(ast.NodeVisitor):
         self.log_file = open(log_file_path, 'a')
 #############
 Output:
-("entity"{tuple_delimiter}"os"{tuple_delimiter}"module"{tuple_delimiter}"The 'os' module provides a way of using operating system dependent functionality like reading or writing to the file system."){record_delimiter}
-("entity"{tuple_delimiter}"ast"{tuple_delimiter}"module"{tuple_delimiter}"The 'ast' module helps Python applications to process trees of the Python abstract syntax grammar."){record_delimiter}
-("entity"{tuple_delimiter}"ASTPrinter"{tuple_delimiter}"class"{tuple_delimiter}"A class that inherits from ast.NodeVisitor and is designed to print and log details of an Abstract Syntax Tree (AST) node and its children in a structured, indented format."){record_delimiter}
-("entity"{tuple_delimiter}"NodeVisitor"{tuple_delimiter}"attribute"{tuple_delimiter}"A class in the ast module that is used as a base class to define custom AST visitors."){record_delimiter}
-("entity"{tuple_delimiter}"ast"{tuple_delimiter}"module usage"{tuple_delimiter}"The ast module is used here to provide the NodeVisitor class which ASTPrinter inherits from."){record_delimiter}
-("entity"{tuple_delimiter}"__init__"{tuple_delimiter}"method"{tuple_delimiter}"The initialization method of the ASTPrinter class that sets up the initial state and opens the log file."){record_delimiter}
-("entity"{tuple_delimiter}"self"{tuple_delimiter}"argument"{tuple_delimiter}"Refers to the instance of the ASTPrinter class within its methods."){record_delimiter}
-("entity"{tuple_delimiter}"log_file_path"{tuple_delimiter}"argument"{tuple_delimiter}"A string parameter representing the path to the log file where AST details will be written."){record_delimiter}
-("entity"{tuple_delimiter}"str"{tuple_delimiter}"type"{tuple_delimiter}"The string type, used to annotate the log_file_path parameter."){record_delimiter}
-("entity"{tuple_delimiter}"self.indentation_level"{tuple_delimiter}"attribute"{tuple_delimiter}"An integer attribute of ASTPrinter that keeps track of the current indentation level for printing."){record_delimiter}
-("entity"{tuple_delimiter}"exists"{tuple_delimiter}"function call"{tuple_delimiter}"A function call to os.path.exists() to check if the log file already exists."){record_delimiter}
-("entity"{tuple_delimiter}"path"{tuple_delimiter}"attribute"{tuple_delimiter}"A sub-module of os that provides functions for manipulating filesystem paths."){record_delimiter}
-("entity"{tuple_delimiter}"os"{tuple_delimiter}"module usage"{tuple_delimiter}"The os module is used here to check file existence and remove files."){record_delimiter}
-("entity"{tuple_delimiter}"log_file_path"{tuple_delimiter}"variable"{tuple_delimiter}"A variable holding the path to the log file, used in various operations within the __init__ method."){record_delimiter}
-("entity"{tuple_delimiter}"remove"{tuple_delimiter}"function call"{tuple_delimiter}"A function call to os.remove() to delete the existing log file if it exists."){record_delimiter}
-("entity"{tuple_delimiter}"print"{tuple_delimiter}"function call"{tuple_delimiter}"A built-in function used to output messages about the log file status."){record_delimiter}
-("entity"{tuple_delimiter}"self.log_file"{tuple_delimiter}"attribute"{tuple_delimiter}"An attribute of ASTPrinter that holds the file object for the opened log file."){record_delimiter}
-("entity"{tuple_delimiter}"open"{tuple_delimiter}"function call"{tuple_delimiter}"A built-in function call used to open the log file in append mode."){record_delimiter}
-("relationship"{tuple_delimiter}"ASTPrinter"{tuple_delimiter}"NodeVisitor"{tuple_delimiter}"ASTPrinter inherits from ast.NodeVisitor, extending its functionality for AST processing."{tuple_delimiter}10){record_delimiter}
-("relationship"{tuple_delimiter}"ASTPrinter"{tuple_delimiter}"__init__"{tuple_delimiter}"__init__ is the initialization method of the ASTPrinter class, setting up its initial state."{tuple_delimiter}10){record_delimiter}
-("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"self.indentation_level"{tuple_delimiter}"__init__ initializes self.indentation_level, setting it to 0."{tuple_delimiter}9){record_delimiter}
-("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"log_file_path"{tuple_delimiter}"__init__ takes log_file_path as an argument to determine where to write AST details."{tuple_delimiter}9){record_delimiter}
-("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"exists"{tuple_delimiter}"__init__ uses os.path.exists to check if the log file already exists."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"remove"{tuple_delimiter}"__init__ uses os.remove to delete the existing log file if it exists."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"print"{tuple_delimiter}"__init__ uses print to output messages about the log file status."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"self.log_file"{tuple_delimiter}"__init__ initializes self.log_file by opening the log file in append mode."{tuple_delimiter}9){record_delimiter}
-("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"open"{tuple_delimiter}"__init__ uses the open function to create and open the log file."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"ast"{tuple_delimiter}"NodeVisitor"{tuple_delimiter}"ast module provides the NodeVisitor class used as a base for ASTPrinter."{tuple_delimiter}9){completion_delimiter}
-("relationship"{tuple_delimiter}"os"{tuple_delimiter}"path"{tuple_delimiter}"os module provides the path sub-module for filesystem path operations."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"os"{tuple_delimiter}"exists"{tuple_delimiter}"os.path.exists is used to check file existence."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"os"{tuple_delimiter}"remove"{tuple_delimiter}"os.remove is used to delete files."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"log_file_path"{tuple_delimiter}"exists"{tuple_delimiter}"log_file_path is used as an argument to the exists function to check if the file exists."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"log_file_path"{tuple_delimiter}"remove"{tuple_delimiter}"log_file_path is used as an argument to the remove function if the file needs to be deleted."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"log_file_path"{tuple_delimiter}"open"{tuple_delimiter}"log_file_path is used as an argument to the open function to create/open the log file."{tuple_delimiter}8){completion_delimiter}
+("entity"{tuple_delimiter}"os"{tuple_delimiter}"module"{tuple_delimiter}"The 'os' module provides a way of using operating system dependent functionality like reading or writing to the file system.")
+{record_delimiter}
+("entity"{tuple_delimiter}"ast"{tuple_delimiter}"module"{tuple_delimiter}"The 'ast' module helps Python applications to process trees of the Python abstract syntax grammar.")
+{record_delimiter}
+("entity"{tuple_delimiter}"ASTPrinter"{tuple_delimiter}"class"{tuple_delimiter}"A class that inherits from ast.NodeVisitor and is designed to print and log details of an Abstract Syntax Tree (AST) node and its children in a structured, indented format.")
+{record_delimiter}
+("entity"{tuple_delimiter}"NodeVisitor"{tuple_delimiter}"attribute"{tuple_delimiter}"A class in the ast module that is used as a base class to define custom AST visitors.")
+{record_delimiter}
+("entity"{tuple_delimiter}"ast"{tuple_delimiter}"module usage"{tuple_delimiter}"The ast module is used here to provide the NodeVisitor class which ASTPrinter inherits from.")
+{record_delimiter}
+("entity"{tuple_delimiter}"__init__"{tuple_delimiter}"method"{tuple_delimiter}"The initialization method of the ASTPrinter class that sets up the initial state and opens the log file.")
+{record_delimiter}
+("entity"{tuple_delimiter}"self"{tuple_delimiter}"argument"{tuple_delimiter}"Refers to the instance of the ASTPrinter class within its methods.")
+{record_delimiter}
+("entity"{tuple_delimiter}"log_file_path"{tuple_delimiter}"argument"{tuple_delimiter}"A string parameter representing the path to the log file where AST details will be written.")
+{record_delimiter}
+("entity"{tuple_delimiter}"str"{tuple_delimiter}"type"{tuple_delimiter}"The string type, used to annotate the log_file_path parameter.")
+{record_delimiter}
+("entity"{tuple_delimiter}"self.indentation_level"{tuple_delimiter}"attribute"{tuple_delimiter}"An integer attribute of ASTPrinter that keeps track of the current indentation level for printing.")
+{record_delimiter}
+("entity"{tuple_delimiter}"exists"{tuple_delimiter}"function call"{tuple_delimiter}"A function call to os.path.exists() to check if the log file already exists.")
+{record_delimiter}
+("entity"{tuple_delimiter}"path"{tuple_delimiter}"attribute"{tuple_delimiter}"A sub-module of os that provides functions for manipulating filesystem paths.")
+{record_delimiter}
+("entity"{tuple_delimiter}"os"{tuple_delimiter}"module usage"{tuple_delimiter}"The os module is used here to check file existence and remove files.")
+{record_delimiter}
+("entity"{tuple_delimiter}"log_file_path"{tuple_delimiter}"variable"{tuple_delimiter}"A variable holding the path to the log file, used in various operations within the __init__ method.")
+{record_delimiter}
+("entity"{tuple_delimiter}"remove"{tuple_delimiter}"function call"{tuple_delimiter}"A function call to os.remove() to delete the existing log file if it exists.")
+{record_delimiter}
+("entity"{tuple_delimiter}"print"{tuple_delimiter}"function call"{tuple_delimiter}"A built-in function used to output messages about the log file status.")
+{record_delimiter}
+("entity"{tuple_delimiter}"self.log_file"{tuple_delimiter}"attribute"{tuple_delimiter}"An attribute of ASTPrinter that holds the file object for the opened log file.")
+{record_delimiter}
+("entity"{tuple_delimiter}"open"{tuple_delimiter}"function call"{tuple_delimiter}"A built-in function call used to open the log file in append mode.")
+{record_delimiter}
+("relationship"{tuple_delimiter}"ASTPrinter"{tuple_delimiter}"NodeVisitor"{tuple_delimiter}"ASTPrinter inherits from ast.NodeVisitor, extending its functionality for AST processing."{tuple_delimiter}10)
+{record_delimiter}
+("relationship"{tuple_delimiter}"ASTPrinter"{tuple_delimiter}"__init__"{tuple_delimiter}"__init__ is the initialization method of the ASTPrinter class, setting up its initial state."{tuple_delimiter}10)
+{record_delimiter}
+("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"self.indentation_level"{tuple_delimiter}"__init__ initializes self.indentation_level, setting it to 0."{tuple_delimiter}9)
+{record_delimiter}
+("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"log_file_path"{tuple_delimiter}"__init__ takes log_file_path as an argument to determine where to write AST details."{tuple_delimiter}9)
+{record_delimiter}
+("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"exists"{tuple_delimiter}"__init__ uses os.path.exists to check if the log file already exists."{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}"exists"{tuple_delimiter}"log_file_path"{tuple_delimiter}"log_file_path is used as an argument to the exists function to check if the file exists."{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"remove"{tuple_delimiter}"__init__ uses os.remove to delete the existing log file if it exists."{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}"remove"{tuple_delimiter}"log_file_path"{tuple_delimiter}"log_file_path is used as an argument to the remove function if the file needs to be deleted."{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"print"{tuple_delimiter}"__init__ uses print to output messages about the log file status."{tuple_delimiter}7)
+{record_delimiter}
+("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"self.log_file"{tuple_delimiter}"__init__ initializes self.log_file by opening the log file in append mode."{tuple_delimiter}9)
+{record_delimiter}
+("relationship"{tuple_delimiter}"__init__"{tuple_delimiter}"open"{tuple_delimiter}"__init__ uses the open function to create and open the log file."{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}"open"{tuple_delimiter}"log_file_path"{tuple_delimiter}"log_file_path is used as an argument to the open function to create/open the log file."{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}"ast"{tuple_delimiter}"NodeVisitor"{tuple_delimiter}"ast module provides the NodeVisitor class used as a base for ASTPrinter."{tuple_delimiter}9)
+{record_delimiter}
+("relationship"{tuple_delimiter}"os"{tuple_delimiter}"path"{tuple_delimiter}"os module provides the path sub-module for filesystem path operations."{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}"os"{tuple_delimiter}"exists"{tuple_delimiter}"os.path.exists is used to check file existence."{tuple_delimiter}7)
+{record_delimiter}
+("relationship"{tuple_delimiter}"os"{tuple_delimiter}"remove"{tuple_delimiter}"os.remove is used to delete files."{tuple_delimiter}7)
+{completion_delimiter}
 
 #############################
 -Real Data-

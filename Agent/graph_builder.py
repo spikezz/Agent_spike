@@ -346,7 +346,12 @@ def extract_entities_and_relationships(log_file_path: str, source_file: str, gra
         line_num = len(lines)
         entity_set = set()
         in_class=False
+        in_function=False
         current_class_indent=[]
+        current_function_indent=[]
+        function_name=""
+        relation_blacklist=[]
+        relation_whitelist=[]
         for line_idx, line in enumerate(lines):
             stripped_line = line.lstrip()
             current_line_indent = len(line) - len(stripped_line)
@@ -354,10 +359,13 @@ def extract_entities_and_relationships(log_file_path: str, source_file: str, gra
                 if current_line_indent<=current_class_indent[0]:
                     in_class=False
                     current_class_indent=[]
+            if current_function_indent:
+                if current_line_indent<=current_function_indent[0]:
+                    in_function=False
+                    current_function_indent=[]
             entity_name = ""
             entity_type = ""
             if "ClassDef (" in line:
-                print(line)
                 entity_name = line.strip().split("(name:")[1].split(")")[0].strip()
                 entity_type = "class"
                 current_class_indent.append(current_line_indent)
@@ -368,6 +376,9 @@ def extract_entities_and_relationships(log_file_path: str, source_file: str, gra
                     entity_type = "method"
                 else:
                     entity_type = "function"
+                function_name=entity_name
+                current_function_indent.append(current_line_indent)
+                in_function=True
             elif "(name:" in line:
                 if "(asname:" in line:
                     entity_name=line.strip().split("(asname:")[1].split(")")[0].strip()
@@ -403,15 +414,34 @@ def extract_entities_and_relationships(log_file_path: str, source_file: str, gra
                 else:
                     entity_type="attribute"
             if entity_name:
+                if not in_function:
+                    if (entity_name,entity_type) not in relation_whitelist:
+                        relation_blacklist.append((entity_name,entity_type))
+                else:
+                    relation_whitelist.append((entity_name,entity_type))
+                    if (entity_name,entity_type) in relation_blacklist:
+                        entity_tuple_index = relation_blacklist.index((entity_name,entity_type))
+                        relation_blacklist.pop(entity_tuple_index)
                 if (entity_name,entity_type) not in entity_set:
                     entity_set.add((entity_name,entity_type))
                     if entity_type:
-                        code_doc+=f'("entity"{{tuple_delimiter}}"{entity_name}"{{tuple_delimiter}}"{entity_type}"{{tuple_delimiter}}...)\n'
+                        code_doc+=f'("entity"{{tuple_delimiter}}"{entity_name}"{{tuple_delimiter}}"{entity_type}"{{tuple_delimiter}}...){{record_delimiter}}\n'
                     else:
-                        code_doc+=f'("entity"{{tuple_delimiter}}"{entity_name}"{{tuple_delimiter}}...)\n'
-    code_doc+="...\n"
-    code_doc+='("relationship"{tuple_delimiter}...)\n'
-    code_doc+="...\n"
+                        code_doc+=f'("entity"{{tuple_delimiter}}"{entity_name}"{{tuple_delimiter}}...){{record_delimiter}}\n'
+    code_doc+='("entity"{tuple_delimiter}"...){record_delimiter}\n...\n'
+    if function_name:
+        for entity_tuple in entity_set:
+            if entity_tuple not in relation_blacklist and entity_tuple[0]!=function_name:
+                code_doc+=f'("relationship"{{tuple_delimiter}}{function_name}{{tuple_delimiter}}{entity_tuple[0]}{{tuple_delimiter}}...){{record_delimiter}}\n'
+                code_doc+=f'("relationship"{{tuple_delimiter}}{entity_tuple[0]}{{tuple_delimiter}}...){{record_delimiter}}\n'
+                code_doc+='...\n'
+        code_doc+='("relationship"{tuple_delimiter}...){record_delimiter}\n...\n'
+    else:
+        for entity_tuple in entity_set:
+            code_doc+=f'("relationship"{{tuple_delimiter}}{entity_tuple[0]}{{tuple_delimiter}}...){{record_delimiter}}\n'
+            code_doc+='...\n'
+        code_doc+='("relationship"{tuple_delimiter}...){record_delimiter}\n...\n\n'
+    code_doc+='{completion_delimiter}\n'
     with open(output_file_path, 'w', encoding='utf-8') as output_file:
         output_file.write(get_blocked_text(code_doc,"# "))
 

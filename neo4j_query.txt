@@ -1,3 +1,29 @@
+// prepare
+// sudo find / -name neo4j.conf
+// browser.post_connect_cmd=config {initialNodeDisplay:1000}
+// browser.post_connect_cmd=style {}
+// MATCH ()-[r:RELATES_TO]->()
+// DELETE r;
+// MATCH (n)
+// DETACH DELETE n
+// MATCH (n)
+// WHERE toLower(n.name) CONTAINS toLower('GET_ENTITY_BY_KEY')
+// RETURN n
+
+// MATCH (source)-[r]-(target)
+// WHERE toLower(target.name) CONTAINS toLower('MAP_QUERY_TO_ENTITIES')
+// RETURN source, type(r) as relationshipType, target
+
+// MATCH (source)-[r]-(target)
+// WHERE toLower(target.id) CONTAINS toLower('be23fe00de21def0fe8ba7951d576eb')
+// RETURN source, type(r) as relationshipType, target
+
+// MATCH (source)-[r]-(target)
+// WHERE toLower(target.id) CONTAINS toLower('be23fe00de21def0fe8ba7951d576eb')
+//  AND NONE(label IN labels(source) WHERE label IN ['BaseDocument', 'BaseTextUnit','FinalDocument','Relationship','TextUnitGroup'])
+//  AND NONE(label IN labels(target) WHERE label IN ['BaseDocument', 'BaseTextUnit','FinalDocument','Relationship','TextUnitGroup'])
+// RETURN source, type(r) as relationshipType, target
+
 // 1. Import Base Documents
 LOAD CSV WITH HEADERS FROM 'file:///create_base_documents.csv' AS row
 CREATE (bd:BaseDocument {

@@ -52,11 +52,12 @@ Overall, keep your response extreamly short and precise.
 
 ENTITY_EXTRACTION="""
 
-Entity_types: [module, module usage, class, method, function, function call, variable, argument, attribute, type]
+Entity_types: MODULE, MODULE USAGE, CLASS, METHOD, FUNCTION, FUNCTION CALL, VARIABLE, ARGUMENT, ATTRIBUTE, TYPE
 
 Complete the Output:
 
 """
+
 RELATIONSHIP_EXTRACTION="""
 The known relationships are:
 

@@ -687,8 +687,8 @@ def replace_file(root_dir):
         return
 
     # Define destination directories and files
-    destination_prompts_dir = os.path.join(root_dir, 'playground/knowledge_graph/prompts')
-    destination_settings_file = os.path.join(root_dir, 'playground/knowledge_graph/settings.yaml')
+    destination_prompts_dir = os.path.join(root_dir, f'{PLAYGROUND_ROOT_DIR}/knowledge_graph/prompts')
+    destination_settings_file = os.path.join(root_dir, f'{PLAYGROUND_ROOT_DIR}/knowledge_graph/settings.yaml')
 
     # Ensure the destination directories exist
     os.makedirs(destination_prompts_dir, exist_ok=True)
@@ -830,120 +830,6 @@ def main(llm:str,graph_ready:bool,python_path:str) -> None:
         # Dump context
         create_file_with_content(f"{PLAYGROUND_ROOT_DIR}/context.log",context)
         turn_idx+=1
-
-# def handle_quit():
-#     print("Goodbye!")
-
-# def handle_prepare_create_graph(user_input: str):
-#     print(f"user:\n{user_input}\n")
-#     split_python_file("./input", "./output")
-
-# def handle_create_graph(user_input: str):
-#     print(f"user:\n{user_input}\n")
-#     graph_builder.prepare_input_docs("./output")
-#     append_graph_context('./output')
-
-# def handle_initialize_graph(user_input: str,python_path: str) -> bool:
-#     print(f"user:\n{user_input}\n")
-#     result, output = execute_graphrag_bash_command(python_path, "graphrag.index", KNOWLEDGE_GRAPH_ROOT_PATH, init=True)
-#     print("Command execution completed successfully." if result else "Command execution failed.")
-#     return result
-
-# def handle_index_graph(user_input:str,python_path: str) -> bool:
-#     print(f"user:\n{user_input}\n")
-#     print('please prepare settings and prompts manually! seeing log "graph_building_log.log"')
-#     result, output = execute_graphrag_bash_command(python_path, "graphrag.index", KNOWLEDGE_GRAPH_ROOT_PATH)
-#     print("Command execution completed successfully." if result else "Command execution failed.")
-    
-#     csv_import_folder_path = os.path.join(KNOWLEDGE_GRAPH_ROOT_PATH, "import")
-#     os.makedirs(csv_import_folder_path, exist_ok=True)
-#     output_folders = [(datetime.datetime.fromtimestamp(os.path.getctime(os.path.join(KNOWLEDGE_GRAPH_ROOT_PATH, "output", item))), os.path.join(KNOWLEDGE_GRAPH_ROOT_PATH, "output", item)) for item in os.listdir(os.path.join(KNOWLEDGE_GRAPH_ROOT_PATH, "output")) if os.path.isdir(os.path.join(KNOWLEDGE_GRAPH_ROOT_PATH, "output", item))]
-#     last_output_dir_path = sorted(output_folders, key=lambda x: x[0], reverse=True)[0][1] + "/artifacts"
-#     convert_parquet_to_csv_func(last_output_dir_path, csv_import_folder_path)
-#     return True
-
-# def handle_query_graph(user_input: str, python_path: str):
-#     print(f"user:\n{user_input}\n")
-#     user_input = input("user: ")
-#     query_type = "local"
-#     if user_input.lower() == '/g':
-#         print(f"user:\n{user_input}\n")
-#         query_type = "global"
-#         user_input = input("user: ")
-#     print(f"user:\n{user_input}\n")
-#     result, output = execute_graphrag_bash_command(python_path, "graphrag.query", KNOWLEDGE_GRAPH_ROOT_PATH, query_type=query_type, query=user_input)
-#     if result:
-#         print("query response:")
-#         print(output)
-
-# def handle_ai_response(context: str, user_input: str, llm: str, chat_history: dict, code_blocks_traj: list, validator_triggered: int) -> (str, bool):
-#     validate_response = False
-#     system_prompt = SYSTEM_PROMPT_DEVELOPER + OUTPUT_FORMAT_INSTRUCTION
-#     for retry in range(2):
-#         print(f"retry:{retry}")
-#         origin_ai_response = get_api_response(context, system_prompt, llm)
-#         if test_code_block_format(origin_ai_response):
-#             context = process_validated_response(None, user_input, origin_ai_response, context, chat_history, code_blocks_traj)
-#             validate_response = True
-#             break
-#         else:
-#             validator_triggered += 1
-#             regex_test_result = analyse_code_block_format(origin_ai_response)
-#             validate_prompt = get_validate_prompt(origin_ai_response, regex_test_result)
-#             print(f"AI_validator:\n{validate_prompt}\n")
-#             validate_ai_response = get_api_response(validate_prompt, OUTPUT_STRUCTURE_VALIDATE_INSTRUCTION, "gpt-4o-mini")
-#             if test_code_block_format(validate_ai_response):
-#                 context = process_validated_response("AI_validator", validate_prompt, validate_ai_response, context, chat_history, code_blocks_traj)
-#                 validate_response = True
-#                 break
-#     return context, validate_response
-
-# @click.command()
-# @click.option('--llm', default="gpt-4o-mini", help='llm model.')
-# @click.option('--graph-ready', '-gr', is_flag=True, help='Indicates if it is ready to query knowledge graph.')
-# @click.option("--python-path", type=str, default="python3")
-# def main(llm: str, graph_ready: bool, python_path: str) -> None:
-#     """Main function to interact with the AI model and knowledge graph."""
-#     code_blocks_traj = []
-#     chat_history = {"chat_history": []}
-#     context = ""
-#     turn_idx = 0
-#     validator_triggered = 0
-
-#     while True:
-#         print(f"Chat round {turn_idx}:")
-#         user_input = input("user: ")
-
-#         if user_input.lower() == '/q':
-#             handle_quit()
-#             break
-#         elif user_input.lower() == '/pcg':
-#             handle_prepare_create_graph(user_input)
-#             graph_ready = False
-#             continue
-#         elif user_input.lower() == '/cg':
-#             handle_create_graph(user_input)
-#             continue
-#         elif user_input.lower() == '/itg':
-#             graph_ready = handle_initialize_graph(python_path)
-#             continue
-#         elif user_input.lower() == '/ixg':
-#             graph_ready = handle_index_graph(python_path)
-#             continue
-#         elif graph_ready and user_input.lower() == '/qg':
-#             handle_query_graph(user_input, python_path)
-#             continue
-
-#         context += f"\nuser:\n{user_input}\n"
-#         context, validate_response = handle_ai_response(context, user_input, llm, chat_history, code_blocks_traj, validator_triggered)
-        
-#         if not validate_response:
-#             raise Exception("Bad output!")
-
-#         dump_dict_to_json("./code_blocks.json", {"code_blocks_traj": code_blocks_traj, "validator_triggered": validator_triggered})
-#         dump_dict_to_json("./chat_history.json", chat_history)
-#         create_file_with_content("./context.log", context)
-#         turn_idx += 1
 
 if __name__ == "__main__":
     main()

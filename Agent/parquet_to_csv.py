@@ -15,18 +15,14 @@ def clean_quotes(value):
 def convert_parquet_to_csv_func(parquet_dir, csv_dir):
     """Convert all Parquet files in a directory to CSV format."""
     for file_name in os.listdir(parquet_dir):
-        print(file_name)
         if file_name.endswith('.parquet'):
             parquet_file = os.path.join(parquet_dir, file_name)
             csv_file = os.path.join(csv_dir, file_name.replace('.parquet', '.csv'))
-            
             # Load the Parquet file
             df = pd.read_parquet(parquet_file)
-                        
             # Clean quotes in string fields
             for column in df.select_dtypes(include=['object']).columns:
                 df[column] = df[column].apply(clean_quotes)
-            
             # Save to CSV
             new_csv_file=""
             df.to_csv(csv_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
@@ -38,8 +34,13 @@ def convert_parquet_to_csv_func(parquet_dir, csv_dir):
                         new_csv_file+=line.replace('""','"')
                 with open(csv_file, 'w') as f:
                     f.write(new_csv_file)
+            else:
+                with open(csv_file, 'r') as f:
+                    for line in f:
+                        new_csv_file+=line.replace('""\\','').replace('\\""','""')
+                with open(csv_file, 'w') as f:
+                    f.write(new_csv_file)
             print(f"Converted {parquet_file} to {csv_file} successfully.")
-
     print("All Parquet files have been converted to CSV.")
 
 @click.command()
@@ -51,14 +52,11 @@ def convert_parquet_to_csv(parquet_dir, csv_dir):
         if file_name.endswith('.parquet'):
             parquet_file = os.path.join(parquet_dir, file_name)
             csv_file = os.path.join(csv_dir, file_name.replace('.parquet', '.csv'))
-            
             # Load the Parquet file
             df = pd.read_parquet(parquet_file)
-                        
             # Clean quotes in string fields
             for column in df.select_dtypes(include=['object']).columns:
                 df[column] = df[column].apply(clean_quotes)
-            
             # Save to CSV
             new_csv_file=""
             df.to_csv(csv_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
@@ -70,8 +68,13 @@ def convert_parquet_to_csv(parquet_dir, csv_dir):
                         new_csv_file+=line.replace('""','"')
                 with open(csv_file, 'w') as f:
                     f.write(new_csv_file)
+            else:
+                with open(csv_file, 'r') as f:
+                    for line in f:
+                        new_csv_file+=line.replace('""\\','').replace('\\""','""')
+                with open(csv_file, 'w') as f:
+                    f.write(new_csv_file)
             print(f"Converted {parquet_file} to {csv_file} successfully.")
-
     print("All Parquet files have been converted to CSV.")
 
 if __name__ == '__main__':

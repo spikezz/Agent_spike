@@ -1,4 +1,5 @@
 .DS_Store
+playground.zip
 playground/*
 !playground/.gitkeep
 !playground/input/
@@ -6,3 +7,4 @@ playground/input/*
 !playground/input/.gitkeep
 __pycache__/
 graphrag*/
+lancedb/

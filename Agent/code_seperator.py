@@ -6,7 +6,7 @@ import astor
 class CodeSplitter(ast.NodeVisitor):
     """Splits a Python file into separate files based on function and class method definitions."""
 
-    def __init__(self, original_filename):
+    def __init__(self, original_filename,dir_path,full_file_path):
         self.original_filename = original_filename
         self.output_files = []
         self.current_class = None
@@ -16,6 +16,10 @@ class CodeSplitter(ast.NodeVisitor):
         self.global_code = []
         self.processed_classes = set()
         self.alias_to_module = {}
+        self.dir_path=dir_path
+        self.full_file_path=full_file_path
+        self.relative_path = os.path.relpath(self.full_file_path, start=self.dir_path)
+        self.prefix=os.path.dirname(self.relative_path).replace("/","_")
 
     def visit_Import(self, node):
         for alias in node.names:
@@ -37,6 +41,7 @@ class CodeSplitter(ast.NodeVisitor):
             self.extract_method(node)
         else:
             self.extract_function(node)
+        self.generic_visit(node)
 
     def visit(self, node):
         if isinstance(node, ast.Module):
@@ -52,7 +57,7 @@ class CodeSplitter(ast.NodeVisitor):
         used_imports = self.get_used_imports(node)
         new_tree = ast.Module(body=used_imports + [node])
         new_content = astor.to_source(new_tree)
-        new_filename = f"{self.original_filename.split('.')[0]}_{self.file_counter}_v0.py"
+        new_filename = f"{self.prefix}_{self.original_filename.split('.')[0]}_{self.file_counter}_v0.py"
         self.output_files.append((new_filename, new_content))
         self.file_counter += 1
 
@@ -77,7 +82,7 @@ class CodeSplitter(ast.NodeVisitor):
         used_imports = self.get_used_imports(class_copy)
         new_tree = ast.Module(body=used_imports + [class_copy])
         new_content = astor.to_source(new_tree)
-        new_filename = f"{self.original_filename.split('.')[0]}_{self.file_counter}_v0.py"
+        new_filename = f"{self.prefix}_{self.original_filename.split('.')[0]}_{self.file_counter}_v0.py"
         self.output_files.append((new_filename, new_content))
         self.file_counter += 1
 
@@ -87,7 +92,7 @@ class CodeSplitter(ast.NodeVisitor):
             used_imports = self.get_used_imports(global_module)
             new_tree = ast.Module(body=used_imports + self.global_code)
             new_content = astor.to_source(new_tree)
-            new_filename = f"{self.original_filename.split('.')[0]}_global_v0.py"
+            new_filename = f"{self.prefix}_{self.original_filename.split('.')[0]}_global_v0.py"
             self.output_files.append((new_filename, new_content))
 
     def get_used_imports(self, node):
@@ -128,12 +133,13 @@ def split_python_file(dir_path, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     for root, _, files in os.walk(dir_path):
         for file in files:
+            full_file_path = os.path.join(root, file)
             if file.endswith('.py'):
                 file_path = os.path.join(root, file)
                 with open(file_path, 'r') as file:
                     content = file.read()
                 tree = ast.parse(content)
-                splitter = CodeSplitter(os.path.basename(file_path))
+                splitter = CodeSplitter(os.path.basename(file_path),dir_path,full_file_path)
                 splitter.visit(tree)
                 splitter.extract_global_code()  # Extract global code after visiting all nodes
                 for filename, content in splitter.output_files:
@@ -158,3 +164,4 @@ def main(dir_path, output_dir):
 
 if __name__ == "__main__":
     main()
+
