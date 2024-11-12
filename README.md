@@ -128,7 +128,7 @@ here is the several combination for the rest settings:
 #### ollama
 
   ```settings.yaml
-  api_base: https://api.groq.com/openai/v1
+  api_base: http://localhost:11434/v1/
   model: llama3.1:70b-instruct-q6_K
   request_timeout: 500.0
   max_retries: 30
